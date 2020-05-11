@@ -1,0 +1,127 @@
+http://www.algs4.princeton.edu
+
+Dynamic Connectivity
+    Given a set of N objects
+        Union Command: Connect two objects
+        Find/Connected Query: Is there a path connecting the two objects?
+
+We assume "is connected to" is an equivalence relation
+    Reflexive: p is connected to p
+    Symmetric: if p is connected to q, q is connected to p
+    Transitive: if p is connected to q and q is connected to r, then p is connected to r
+
+Connected Components: Maximal set of objects that are mutually connected
+    0    1          2---3
+        /           | / |
+       4            6   7
+        \
+         5
+    {0}, {1,4,5}, {2,3,6,7}
+
+Find Query: Check if two objects are in the same component
+Union Command: Replace components containing objects with their union
+
+So if the diagram above has union(2,5):
+    0    1    2---3
+        /   / | / |
+       4   /  6   7
+        \ /
+         5
+
+    Then -> {0}, {1,2,3,4,5,6,7}
+
+Goal: Design an efficient data structure for union-find
+    Number of objects N can be huge
+    Number of operations M can be huge
+    Find queries and union commands may be intermixed
+
+Quick-Find:
+    Data Structure
+        Integer array id[] of size N
+        Interpretation: p and q are connected iff they have the same id
+
+public class QuickFindUF
+{
+    private int[] id;
+
+    public QuickFindUF(int N):
+    {
+        id = new int[N];
+        for (int i = 0; i < N; i++)
+        {
+            id[i] = i;
+        }
+    }
+
+    public boolean connected(int p, int q)
+    {
+        return id[p] == id[q];
+    }
+
+    public void union(int p, int q)
+    {
+        if !(connected(p, q))
+        {
+            int p_value = id[p];
+            int q_value = id[q];
+            for (int i = 0; i < N; i++)
+            {
+                if (id[i] == p_value){
+                    id[i] = q_value;
+                }
+            }
+        }
+    }
+}
+
+Cost Model
+    initialize: N
+    union: N
+    find: 1
+    The union is too expensive
+
+
+Quick-Union
+    Data Structure
+        Integer array id[] of size N
+        Interpretation: id[i] is the parent of i
+        Root of i is id[id[...id[i]...]]
+
+public class QuickUnionUF
+{
+    private int[] id;
+
+    public QuickUnionUF(int N)
+    {
+        for (int i = 0; i < N; i++)
+        {
+            id[i] = i;
+        }
+    }
+
+    private int root(int i)
+    {
+        while (i != id[i])
+        {
+            i = id[i];
+        }
+    }
+
+    private boolean connected(int p, int q)
+    {
+        return root(p) == root(q);
+    }
+
+    private int union(int p, int q)
+    {
+        p_root = root(p);
+        q_root = root(q);
+        int[p_root] = q_root;
+    }
+}
+
+Cost Model
+    Initialize: N
+    Union: N (includes cost of finding roots)
+    Find: N
+
