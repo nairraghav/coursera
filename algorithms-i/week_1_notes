@@ -40,45 +40,45 @@ Quick-Find:
         Integer array id[] of size N
         Interpretation: p and q are connected iff they have the same id
 
-public class QuickFindUF
-{
-    private int[] id;
-
-    public QuickFindUF(int N):
+    public class QuickFindUF
     {
-        id = new int[N];
-        for (int i = 0; i < N; i++)
+        private int[] id;
+
+        public QuickFindUF(int N):
         {
-            id[i] = i;
-        }
-    }
-
-    public boolean connected(int p, int q)
-    {
-        return id[p] == id[q];
-    }
-
-    public void union(int p, int q)
-    {
-        if !(connected(p, q))
-        {
-            int p_value = id[p];
-            int q_value = id[q];
+            id = new int[N];
             for (int i = 0; i < N; i++)
             {
-                if (id[i] == p_value){
-                    id[i] = q_value;
+                id[i] = i;
+            }
+        }
+
+        public boolean connected(int p, int q)
+        {
+            return id[p] == id[q];
+        }
+
+        public void union(int p, int q)
+        {
+            if !(connected(p, q))
+            {
+                int p_value = id[p];
+                int q_value = id[q];
+                for (int i = 0; i < N; i++)
+                {
+                    if (id[i] == p_value){
+                        id[i] = q_value;
+                    }
                 }
             }
         }
     }
-}
 
-Cost Model
-    initialize: N
-    union: N
-    find: 1
-    The union is too expensive
+    Cost Model
+        initialize: N
+        union: N
+        find: 1
+        The union is too expensive
 
 
 Quick-Union
@@ -87,41 +87,80 @@ Quick-Union
         Interpretation: id[i] is the parent of i
         Root of i is id[id[...id[i]...]]
 
-public class QuickUnionUF
-{
-    private int[] id;
-
-    public QuickUnionUF(int N)
+    public class QuickUnionUF
     {
-        for (int i = 0; i < N; i++)
+        private int[] id;
+
+        public QuickUnionUF(int N)
         {
-            id[i] = i;
+            for (int i = 0; i < N; i++)
+            {
+                id[i] = i;
+            }
+        }
+
+        private int root(int i)
+        {
+            while (i != id[i])
+            {
+                i = id[i];
+            }
+        }
+
+        private boolean connected(int p, int q)
+        {
+            return root(p) == root(q);
+        }
+
+        private int union(int p, int q)
+        {
+            p_root = root(p);
+            q_root = root(q);
+            int[p_root] = q_root;
         }
     }
 
-    private int root(int i)
-    {
-        while (i != id[i])
+    Cost Model
+        Initialize: N
+        Union: N (includes cost of finding roots)
+        Find: N
+
+Improvement 1: Weighting
+    Weighted Quick-Union
+        Modify quick-union to avoid tall trees
+        Keep track of size of each tree (number of objects)
+        Balance by linking root of smaller tree to root of larger tree
+
+    Data Structure:
+        Same as quick-union, but maintain extra array sz[i] to count the number of objects in the tree rooted at i
+    
+    Find
+        Identical to quick-union
+            
+        private boolean connected(int p, int q)
         {
-            i = id[i];
+            return root(p) == root(q);
         }
-    }
 
-    private boolean connected(int p, int q)
-    {
-        return root(p) == root(q);
-    }
+    Union
+        Modify quick union to:
+            Link root of smaller tree to root of larger tree
+            Update the sz[] array
 
-    private int union(int p, int q)
-    {
-        p_root = root(p);
-        q_root = root(q);
-        int[p_root] = q_root;
-    }
-}
-
-Cost Model
-    Initialize: N
-    Union: N (includes cost of finding roots)
-    Find: N
+        private int union(int p, int q)
+        {
+            int i = root(p);
+            int j = root(q);
+            if (i != j)
+            {
+                if (sz[i] < sz[j])
+                {
+                    id[i] = j;
+                    sz[j] += sz[i];
+                } else {
+                    id[j] = i
+                    sz[i] += sz[j];
+                }
+            }
+        }
 
